@@ -35,15 +35,15 @@ class RepairRequest(models.Model):
     submitted_by = models.ForeignKey(User, on_delete=models.PROTECT,related_name='repair_requests')
     title = models.CharField(max_length=100, validators=[MinLengthValidator(5),MaxLengthValidator(100)])
     description = models.TextField(validators=[MinLengthValidator(5)])
-    category = models.TextChoices(max_length=20, choices = CategoryChoices.choices)
-    priority = models.CharField(max_length=20, choices=PriorityChoices.choices)
-    status = models.TextChoices(max_length=20, choices = StatusChoices.choices)
+    category = models.CharField(max_length=2, choices = CategoryChoices.choices)
+    priority = models.CharField(max_length=1, choices=PriorityChoices.choices)
+    status = models.CharField(max_length=2, choices = StatusChoices.choices)
     image = models.ImageField(upload_to = 'apartments_problems/', blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now_add=True)
 
     def clean(self):
-        if self.apartment_id and self.submited_by_id:
+        if self.apartment_id and self.submitted_by_id:
 
             is_member = ApartmentMembership.objects.filter(
                 user = self.submitted_by,
@@ -53,7 +53,7 @@ class RepairRequest(models.Model):
 
             if not is_member:
                 raise ValidationError({
-                    'submitted_by' : 'You must be an active apartment memeber to submit a repair request.'
+                    'submitted_by' : 'You must be an active apartment member to submit a repair request.'
                 })
 
 
@@ -61,7 +61,7 @@ class RepairRequest(models.Model):
         constraints = [
 
             models.CheckConstraint(
-                condition=models.Q(category__in=['P', 'E', 'El','FC','O']),
+                condition=models.Q(category__in=['P', 'E', 'EL','FC','O']),
                 name='valid_repair_category'
             ),
 
@@ -77,5 +77,5 @@ class RepairRequest(models.Model):
 
         ]
 
-        def __str__(self):
-            return self.title
+    def __str__(self):
+        return self.title

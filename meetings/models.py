@@ -19,7 +19,7 @@ class Meeting(models.Model):
     description = models.TextField(blank=True, null=True)
     scheduled_at = models.DateTimeField()
     location = models.CharField(max_length=100, validators=[MinLengthValidator(3)])
-    status = models.CharField(max_length=20, choices = StatusChoices.choices,
+    status = models.CharField(max_length=2, choices = StatusChoices.choices,
                               default = StatusChoices.SCHEDULED)
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -41,8 +41,8 @@ class Meeting(models.Model):
             )
         ]
 
-        def __str__(self):
-            return self.title
+    def __str__(self):
+        return self.title
 
 class AgendaItem(models.Model):
     meeting = models.ForeignKey(Meeting, on_delete = models.CASCADE, related_name='agenda_items')
@@ -69,8 +69,8 @@ class AgendaItem(models.Model):
             )
         ]
 
-        def __str__(self):
-            return f"{self.order} - {self.title}"
+    def __str__(self):
+        return f"{self.order} - {self.title}"
 
 
 class Vote(models.Model):
@@ -82,7 +82,7 @@ class Vote(models.Model):
 
     agenda_item = models.ForeignKey(AgendaItem, on_delete = models.CASCADE, related_name='votes')
     user = models.ForeignKey(User, on_delete = models.CASCADE)
-    choice = models.CharField(max_length=20, choices = VoteChoices.choices)
+    choice = models.CharField(max_length=1, choices = VoteChoices.choices)
     voted_at = models.DateTimeField(auto_now_add=True)
 
     def clean(self):
@@ -121,8 +121,8 @@ class Vote(models.Model):
             )
         ]
 
-        def __str__(self):
-            return f"{self.user.username} - {self.choice}"
+    def __str__(self):
+        return f"{self.user.username} - {self.choice}"
 
 
 class MeetingParticipants(models.Model):
@@ -135,7 +135,7 @@ class MeetingParticipants(models.Model):
 
     meeting = models.ForeignKey(Meeting, on_delete=models.CASCADE,related_name='participants')
     user = models.ForeignKey(User, on_delete=models.CASCADE,related_name='meeting_participants')
-    attendance_status = models.CharField(max_length=20, choices = AttendanceStatus.Choices,default=AttendanceStatus.INVITED)
+    attendance_status = models.CharField(max_length=20, choices = AttendanceStatus.choices,default=AttendanceStatus.INVITED)
     joined_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -148,13 +148,13 @@ class MeetingParticipants(models.Model):
             ),
 
             models.CheckConstraint(
-                condition=models.Q(choice__in=['I','AC','AT','AB']),
+                condition=models.Q(attendace_status__in=['I','AC','AT','AB']),
                 name='valid_attendance_status'
             )
         ]
 
-        def __str__(self):
-            return f"{self.user.username} - {self.meeting.title}"
+    def __str__(self):
+        return f"{self.user.username} - {self.meeting.title}"
 
 
 

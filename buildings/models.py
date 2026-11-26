@@ -8,7 +8,7 @@ from accounts.models import User
 
 # Create your models here.
 
-postal_code_validator = RegexValidator(regex=r"^[0-9{4,10]$", message = "Enter a valid postal code")
+postal_code_validator = RegexValidator(regex=r"^[0-9]{4,10]$", message = "Enter a valid postal code")
 
 class Building(models.Model):
     name = models.CharField(max_length=60, validators = [MinLengthValidator(3)])
@@ -22,18 +22,18 @@ class Building(models.Model):
     class Meta:
         constraints = [
             models.CheckConstraint(
-                condition = Q(floors_count_gte = 1),
+                condition = Q(floors_count__gte = 1),
                 name = 'building_minimum_one_floor'
             ),
 
             models.CheckConstraint(
-                condition=Q(floors_count_Lte=1),
+                condition=Q(floors_count__lte=50),
                 name='building_maximum_fifty_floors'
             )
         ]
 
-        def __str__(self):
-            return self.name
+    def __str__(self):
+        return self.name
 
 class Apartment(models.Model):
     building = models.ForeignKey(Building, on_delete = models.PROTECT, related_name ="apartments")
@@ -76,12 +76,12 @@ class Apartment(models.Model):
 
             models.CheckConstraint(
                 condition=Q(rooms_count__lte=20),
-                name='apartment_maximim_rooms'
+                name='apartment_maximum_rooms'
             )
         ]
 
-        def __str__(self):
-            return f"Apartment {self.apartment_number}"
+    def __str__(self):
+        return f"Apartment {self.apartment_number}"
 
 
 class ApartmentMembership(models.Model):
@@ -93,14 +93,14 @@ class ApartmentMembership(models.Model):
 
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name = 'apartment_memberships')
     apartment = models.ForeignKey(Apartment, on_delete=models.PROTECT, related_name = 'memberships')
-    membership_role = models.CharField(max_length=6, choices = MembershipRole.choices)
+    membership_role = models.CharField(max_length=1, choices = MembershipRole.choices)
     start_date = models.DateField()
     end_date = models.DateField(blank = True, null = True)
     is_active = models.BooleanField(default=True)
 
     def clean(self):
 
-        if self.end_date and self.end_date < timezone.localdate() and not self.start_date:
+        if self.start_date and self.end_date and self.end_date < timezone.localdate() and not self.start_date:
             raise ValidationError({
                 'end_date': "End date must be before start date."
             })
@@ -115,6 +115,7 @@ class ApartmentMembership(models.Model):
         constraints = [
             models.UniqueConstraint(
                 fields=['user', 'apartment'],
+                condition= Q(is_active=True),
                 name='unique_active_apartment_membership'
             ),
 
@@ -125,8 +126,8 @@ class ApartmentMembership(models.Model):
             )
         ]
 
-        def __str__(self):
-            return f"{self.user.username} - {self.apartment}"
+    def __str__(self):
+        return f"{self.user.username} - {self.apartment}"
 
 
 
