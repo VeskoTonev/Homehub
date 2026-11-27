@@ -148,7 +148,7 @@ class MeetingParticipants(models.Model):
             ),
 
             models.CheckConstraint(
-                condition=models.Q(attendace_status__in=['I','AC','AT','AB']),
+                condition=models.Q(attendance_status__in=['I','AC','AT','AB']),
                 name='valid_attendance_status'
             )
         ]
